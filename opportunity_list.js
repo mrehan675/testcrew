@@ -1,9 +1,9 @@
 frappe.listview_settings['Opportunity'] = {
 	
     hide_name_column: true,    
-    onload: function(listview) {
-        set_filterin_list(listview);
-    }
+    // onload: function(listview) {
+    //     set_filterin_list(listview);
+    // }
 };
 frappe.views.ListView.prototype.setup_columns=function() {
     // setup columns for list view
@@ -99,31 +99,31 @@ frappe.views.ListView.prototype.setup_columns=function() {
 
 
 
-function set_filterin_list(listview){
+// function set_filterin_list(listview){
 
-    console.log("enter in onload");
-    const observer = new MutationObserver(function(mutations) {
-        console.log("mutation");
-        mutations.forEach(function(mutation) {
-            console.log("foor mutaion");
-            if (mutation.addedNodes.length && frappe.get_route()[0] === "List" && frappe.get_route()[1] === "Opportunity") {
-                console.log("addnodes");
-                let today = frappe.datetime.get_today();
-                let current_url = new URL(window.location.href);
-                let filters = current_url.searchParams.get("filters");
+//     console.log("enter in onload");
+//     const observer = new MutationObserver(function(mutations) {
+//         console.log("mutation");
+//         mutations.forEach(function(mutation) {
+//             console.log("foor mutaion");
+//             if (mutation.addedNodes.length && frappe.get_route()[0] === "List" && frappe.get_route()[1] === "Opportunity") {
+//                 console.log("addnodes");
+//                 let today = frappe.datetime.get_today();
+//                 let current_url = new URL(window.location.href);
+//                 let filters = current_url.searchParams.get("filters");
                 
-                console.log("filter",filters);
+//                 console.log("filter",filters);
 
-                frappe.route_options = {
-                    "submission_deadline": [">", today]
-                };
-                frappe.set_route("List", "Opportunity");
-            }
-        });
-    });
+//                 frappe.route_options = {
+//                     "submission_deadline": [">", today]
+//                 };
+//                 frappe.set_route("List", "Opportunity");
+//             }
+//         });
+//     });
 
-    observer.observe(document.body, { childList: true, subtree: true });
+//     observer.observe(document.body, { childList: true, subtree: true });
 
 
 
-}
+// }

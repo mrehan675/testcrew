@@ -45,33 +45,54 @@ def share_doc_with_manager(self):
 
 
 
+
 @frappe.whitelist()
-def send_email_to_presale_assignee(doctype, doc_name,assignee_email):
+def send_email_to_presale_assignee(doctype, doc_name, assignee_email):
+    
+    doc = frappe.get_doc(doctype, doc_name)
 
-	doc = frappe.get_doc(doctype, doc_name)
+    receiver = assignee_email
+    cc = ["salesops@testcrew.com"]
 
+    if receiver:
+        message = f"""
+        <p>Hello,</p>
+        <p>You have a new pre-sales assignment. Please review the details below:</p>
+        <p><strong>Document Type:</strong> {doc.doctype}</p>
+        <p><strong>Document Name:</strong> {doc.name}</p>        
+        <p><strong>Customer Name:</strong> {doc.customer_name}</p>
+        <p><strong>Opportunity Name:</strong> {doc.opportunity_name}</p>
+        <p><strong>Opportunity Owner:</strong> {doc.opportunity_owner}</p>
+        <p><strong>Sales Stage:</strong> {doc.sales_stage1}</p>
+        <p><strong>Submission Deadline:</strong> {doc.submission_deadline}</p>
 
-	receiver = assignee_email
-	cc = ["salesops@testcrew.com"]
+        <p>Thank you,<br>Sales Operations Team</p>
+        """
 
-	if receiver:
-		# Prepare the email arguments
-		email_args = {
-			"recipients": [receiver],  
-			"cc": cc, 
-			"message": _("New Pre-sales Assignment.Please see the attached document."),  
-			"subject": _("Pre-Sale Assignment"), 
-			"reference_doctype": doc.doctype,  
-			"reference_name": doc.name,  
-		}
+        attached_files = frappe.get_all(
+            "File",
+            filters={"attached_to_doctype": doctype, "attached_to_name": doc_name},
+            fields=["name"]
+        )
 
-		# Enqueue the email sending task without 'async'
-		frappe.enqueue(
-			method=frappe.sendmail,
-			queue='short',
-			timeout=300,
-			**email_args
-		)
-		frappe.msgprint("Email Sent Successfully")
-	else:
-		frappe.msgprint(_("{0}: Employee email not found; hence, email not sent.").format(self.employee))
+        attachments = [{"fid": file["name"]} for file in attached_files]
+
+        email_args = {
+            "recipients": [receiver],
+            "cc": cc,
+            "message": message,  
+            "subject": _("Pre-Sale Assignment"),
+            "reference_doctype": doc.doctype,
+            "reference_name": doc.name,
+            "attachments": attachments
+        }
+
+        frappe.enqueue(
+            method=frappe.sendmail,
+            queue='short',
+            timeout=300,
+            **email_args
+        )
+        frappe.msgprint("Email Sent Successfully")
+    else:
+        frappe.msgprint(_("{0}: Employee email not found; hence, email not sent.").format(assignee_email))

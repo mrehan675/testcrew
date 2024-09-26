@@ -1,19 +1,7 @@
 const p_type = ['RFQ','Paid RFP','RFP']
 const source = ["Eitmad"]
 frappe.ui.form.on('Opportunity',{
-    //Rehan
-    refresh: function(frm) {
-        var optional_stages = ['Scoping', 'Scoping Submitted', 'Proposing'];
-        var current_stage = frm.doc.sales_stage1;
-        
-        
-        if (optional_stages.includes(current_stage)) {
-            frm.set_df_property("opportunity_amount", "reqd", false);
-        } else {
-            frm.set_df_property("opportunity_amount", "reqd", true);
-        }
-    },
-    //
+
     sales_stage1:(frm)=>{
         //Rehan
         if (['New','Open','Qualified','Submitted','Scoping Submitted', 'Hold' ,'Pending PO'].includes(frm.doc.sales_stage1))
@@ -58,7 +46,10 @@ frappe.ui.form.on('Opportunity',{
         frappe.msgprint(__("Opportunity Amount is mandatory and cannot be zero for the current Sales Stage."));
         frappe.validated = false;
     }
-    //        
+    //
+    //Rehan
+    frm.set_df_property('custom_qa_deadline','reqd',frm.doc.source && source.includes(frm.doc.source)?1:0)
+
     },
     before_save: function(frm) {
        
@@ -72,6 +63,10 @@ frappe.ui.form.on('Opportunity',{
         frm.set_df_property('tender_cost','reqd',frm.doc.source && source.includes(frm.doc.source)?1:0)
         if (frm.doc.tender_cost==0 && source.includes(frm.doc.source))
         frm.set_value('tender_cost',null)
+
+    //Rehan
+    frm.set_df_property('custom_qa_deadline','reqd',frm.doc.source && source.includes(frm.doc.source)?1:0)
+
     },
     refresh:(frm)=>{
         if (frm.is_new())
@@ -179,24 +174,7 @@ function set_receiver_email(frm){
 }
 
 
-// Saeed Omar: somar@testcrew.com
-// Magda Mamoun: mmaamoun@testcrew.com
-// Ahmed Almansari: aalmansari@testcrew.com
-// Mohamed Abdulsalam: mabdulsalam@testcrew.com
-// Mohamed Abdullah: mabdallah@testcrew.com
-// Mohamed Sofy: msofy@testcrew.com
-// Omar Hatem: omohamed@testcrew.com
-// Khaled Saleh: ktaha@testcrew.com
 
-
-// Saeed Omar
-// Magda Mamoun
-// Ahmed Almansari
-// Mohamed Abdulsalam
-// Mohamed Abdullah
-// Mohamed Sofy
-// Omar Hatem
-// Khaled Saleh
 
 function set_probability(frm){
     switch(frm.doc.sales_stage1.trim()){
