@@ -1,5 +1,7 @@
 const p_type = ['RFQ','Paid RFP','RFP']
 const source = ["Eitmad"]
+var current_user = frappe.session.user_email;
+
 frappe.ui.form.on('Opportunity',{
 
     sales_stage1:(frm)=>{
@@ -18,6 +20,8 @@ frappe.ui.form.on('Opportunity',{
         if (frm.doc.sales_stage1 == "Lost")
                 frm.trigger('set_as_lost_dialog');    
         set_probability(frm)
+        //Rehan
+        check_sales_stage_submitted_presales(frm)
     },
     validate:(frm)=>{
         if(frm.doc.__islocal && frm.doc.__islocal==1 && frm.doc.secondary_owner_opportunity){
@@ -36,19 +40,22 @@ frappe.ui.form.on('Opportunity',{
                 );
         });
         }
-    //Rehan
-    var optional_stages = ['Scoping', 'Scoping Submitted', 'Proposing'];
+        //Rehan
+        var optional_stages = ['Scoping', 'Scoping Submitted', 'Proposing'];
 
-    var current_stage = frm.doc.sales_stage1;
-    
+        var current_stage = frm.doc.sales_stage1;
         
-    if (frm.doc.opportunity_amount === 0 && !optional_stages.includes(current_stage)) {     
-        frappe.msgprint(__("Opportunity Amount is mandatory and cannot be zero for the current Sales Stage."));
-        frappe.validated = false;
-    }
-    //
-    //Rehan
-    frm.set_df_property('custom_qa_deadline','reqd',frm.doc.source && source.includes(frm.doc.source)?1:0)
+            
+        if (frm.doc.opportunity_amount === 0 && !optional_stages.includes(current_stage)) {     
+            frappe.msgprint(__("Opportunity Amount is mandatory and cannot be zero for the current Sales Stage."));
+            frappe.validated = false;
+        }
+        //
+        //Rehan
+        frm.set_df_property('custom_qa_deadline','reqd',frm.doc.source && source.includes(frm.doc.source)?1:0)
+
+        //Rehan
+        check_sales_stage_submitted_presales(frm)
 
     },
     before_save: function(frm) {
@@ -64,17 +71,55 @@ frappe.ui.form.on('Opportunity',{
         if (frm.doc.tender_cost==0 && source.includes(frm.doc.source))
         frm.set_value('tender_cost',null)
 
-    //Rehan
-    frm.set_df_property('custom_qa_deadline','reqd',frm.doc.source && source.includes(frm.doc.source)?1:0)
+        //Rehan
+        frm.set_df_property('custom_qa_deadline','reqd',frm.doc.source && source.includes(frm.doc.source)?1:0)
 
     },
     refresh:(frm)=>{
         if (frm.is_new())
             frm.set_df_property('status','options',"Open\nClosed")
+        
+        //Rehan
+        override_add_row_button(frm, 'custom_presales_partners');  
     }
    
 })
 
+frappe.ui.form.on("Presales Partner",{
+
+    partner_name:function(frm,cdt,cdn){
+        track_modified_by(frm,cdt,cdn)
+    },
+    engagement:function(frm,cdt,cdn){
+        track_modified_by(frm,cdt,cdn)
+    },
+    amount:function(frm,cdt,cdn){
+        track_modified_by(frm,cdt,cdn)
+    }
+
+});
+
+
+function track_modified_by(frm,cdt,cdn){
+    var child = locals[cdt][cdn];
+
+    if (child.record_added_by != current_user){
+    
+    frappe.model.set_value(cdt,cdn,"modified_by1",current_user);
+    }
+}
+
+function override_add_row_button(frm, fieldname) {
+    frm.fields_dict[fieldname].grid.wrapper.find('.grid-add-row').off('click').on('click', function() {
+        var new_row = frm.add_child(fieldname);
+
+        if (new_row) {
+            new_row.record_added_by = frappe.session.user;
+        }
+
+        frm.refresh_field(fieldname);
+    });
+}
 
 
 function set_stage_presale(frm) {
@@ -200,6 +245,14 @@ function set_probability(frm){
 }
 
 
+
+function check_sales_stage_submitted_presales(frm){
+    if (frm.doc.sales_stage1 === 'Submitted by Presales') {
+        frm.toggle_reqd('custom_presales_partners', true);
+    } else {
+        frm.toggle_reqd('custom_presales_partners', false);
+    }
+}
 
 
 
