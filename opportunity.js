@@ -6,6 +6,7 @@ frappe.ui.form.on('Opportunity',{
 
     sales_stage1:(frm)=>{
         //Rehan
+        //Scoping Submitted updated to Scoping Delivered To Sales
         if (['New','Open','Qualified','Submitted','Scoping Submitted', 'Hold' ,'Pending PO'].includes(frm.doc.sales_stage1))
             frm.set_value('status','Open')
         
@@ -247,7 +248,11 @@ function set_probability(frm){
 
 
 function check_sales_stage_submitted_presales(frm){
-    if (frm.doc.sales_stage1 === 'Submitted by Presales') {
+
+    //Submitted by Presales update to proposal delivered to sales
+    // if (frm.doc.sales_stage1 === 'Submitted by Presales') {
+
+    if (frm.doc.sales_stage1 === 'Proposal Delivered To Sales') {
         frm.toggle_reqd('custom_presales_partners', true);
     } else {
         frm.toggle_reqd('custom_presales_partners', false);
